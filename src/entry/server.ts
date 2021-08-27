@@ -1,3 +1,4 @@
+import Options from '../classes/options'
 import create from '../crud/create'
 import destroy from '../crud/destroy'
 import read from '../crud/read'
@@ -21,7 +22,14 @@ const server = app => {
     method: 'POST',
     handler: async (req, res) => {
       try {
-        await create(req, res)
+        const options = new Options(
+          req.body.key,
+          req.body.passphrase,
+          req.body.target,
+          req.body.autodestruct,
+          req.body.expire
+        )
+        await create(req.body.value, options, app, res)
       } catch (error) {
         app.logger.error(error)
       }
