@@ -1,6 +1,7 @@
 import is from '@sindresorhus/is'
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import Options from '../class/options'
+import Params from '../class/params'
 import Passphrase from '../class/passphrase'
 import del from '../db/del'
 import get from '../db/get'
@@ -11,7 +12,9 @@ const destroy = async (
   app: FastifyInstance,
   options: Options
 ): Promise<RouteHandlerMethod | Error | unknown> => {
-  let { id, passphrase } = options
+  const params = <Params>req.params
+  const id = params.id
+  let { passphrase } = options
 
   // define error handler
   const errorOut = (status: number, message: string): Error => {

@@ -3,6 +3,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } fro
 import isIp from 'is-ip'
 import ms from 'ms'
 import Options from '../class/options'
+import Params from '../class/params'
 import Passphrase from '../class/passphrase'
 import ReadResponse from '../class/read_response'
 import del from '../db/del'
@@ -16,8 +17,10 @@ const read = async (
   app: FastifyInstance,
   options: Options
 ): Promise<RouteHandlerMethod | Error | unknown> => {
-  let { id, passphrase } = options
+  const params = <Params>req.params
+  const id = params.id
   let autodestructSuccess = false
+  let { passphrase } = options
 
   // define error event
   const errorOut = (status: number, message: string): Error => {
