@@ -10,14 +10,6 @@ const getOpts = (opts: Options) => {
 }
 
 const app = (server: FastifyInstance) => {
-  server.get('/:id', {}, async (req: FastifyRequest, res: FastifyReply) => {
-    try {
-      return await read(req, res, server, getOpts(<Options>req.body))
-    } catch (error) {
-      server.log.error(error)
-    }
-  })
-
   server.post('/create', {}, async (req: FastifyRequest, res: FastifyReply) => {
     try {
       const secret = getOpts(<Options>req.body).secret
@@ -27,7 +19,15 @@ const app = (server: FastifyInstance) => {
     }
   })
 
-  server.put('/:id/update', {}, async (req: FastifyRequest, res: FastifyReply) => {
+  server.get('/:id', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      return await read(req, res, server, getOpts(<Options>req.body))
+    } catch (error) {
+      server.log.error(error)
+    }
+  })
+
+  server.put('/:id', {}, async (req: FastifyRequest, res: FastifyReply) => {
     try {
       return await update(req, res, server, getOpts(<Options>req.body))
     } catch (error) {
@@ -35,7 +35,7 @@ const app = (server: FastifyInstance) => {
     }
   })
 
-  server.delete('/:id/destroy', {}, async (req: FastifyRequest, res: FastifyReply) => {
+  server.delete('/:id', {}, async (req: FastifyRequest, res: FastifyReply) => {
     try {
       return await destroy(req, res, server, getOpts(<Options>req.body))
     } catch (error) {

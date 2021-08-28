@@ -5,8 +5,7 @@
   "main": "dist/api/index.js",
   "scripts": {
     "build": "tsc",
-    "dev:start": "tsc -w & doppler run -- vercel dev --debug",
-    "dev:stop": "killall tsc"
+    "dev:start": "doppler run -- vercel dev --debug"
   },
   "keywords": [],
   "author": "Daniel Sieradski <daniel@self.agency>",
