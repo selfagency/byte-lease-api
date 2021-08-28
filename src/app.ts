@@ -1,9 +1,9 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import Options from '../class/options'
-import create from '../crud/create'
-import destroy from '../crud/destroy'
-import read from '../crud/read'
-import update from '../crud/update'
+import Options from './class/options'
+import create from './crud/create'
+import destroy from './crud/destroy'
+import read from './crud/read'
+import update from './crud/update'
 
 const getOpts = (opts: Options) => {
   return new Options(opts.id, opts.secret, opts.passphrase, opts.target, opts.autodestruct, opts.expire)
