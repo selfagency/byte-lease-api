@@ -2,13 +2,11 @@
   "name": "byte-lease",
   "version": "1.0.0",
   "description": "",
-  "main": "api/index.js",
+  "main": "dist/api/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "node api",
     "dev:start": "tsc -w & doppler run -- vercel dev --debug",
-    "dev:stop": "killall tsc",
-    "start": "node api"
+    "dev:stop": "killall tsc"
   },
   "keywords": [],
   "author": "Daniel Sieradski <daniel@self.agency>",
