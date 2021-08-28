@@ -73,7 +73,7 @@ const read = async (
     }
 
     // is there a target?
-    target = await decryptSecret(target, passphrase.toString() || salt)
+    target = await decryptSecret(target, passphrase?.toString() || salt)
     if (isIp(target)) {
       verified = req?.ips?.includes(target) || false
       if (!verified) {
@@ -99,7 +99,7 @@ const read = async (
     }
 
     // return the secret
-    secret = await decryptSecret(secret, passphrase.toString() || salt)
+    secret = await decryptSecret(secret, passphrase?.toString() || salt)
     if (!is.error(secret)) {
       server.log.info(`(${req.id}) Secret ${id} successfully retrieved`)
       res.status(200).send(new ReadResponse(secret, autodestructSuccess, is.number(expires) ? ms(expires * 1000) : '0'))
