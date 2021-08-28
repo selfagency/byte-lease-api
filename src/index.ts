@@ -21,5 +21,5 @@ server.register(app)
 
 export default async (req: VercelRequest, res: VercelResponse) => {
   await server.ready()
-  server.server.emit('request', req, res)
+  return server.server.emit('request', req, res)
 }
