@@ -5,7 +5,7 @@ import Params from '../class/params'
 const update = async (
   req: FastifyRequest,
   res: FastifyReply,
-  app: FastifyInstance,
+  server: FastifyInstance,
   options: Options
 ): Promise<RouteHandlerMethod | Error | unknown> => {
   const params = <Params>req.params

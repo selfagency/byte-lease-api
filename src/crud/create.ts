@@ -11,7 +11,7 @@ import { encryptSecret, generateSalt } from '../share/crypto'
 const create = async (
   req: FastifyRequest,
   res: FastifyReply,
-  app: FastifyInstance,
+  server: FastifyInstance,
   options: Options
 ): Promise<RouteHandlerMethod | Error | undefined> => {
   // define error event
@@ -66,16 +66,14 @@ const create = async (
       // if there's an encrypted secret, continue (if not it should throw)
       if (!is.error(encryptedsecret)) {
         // if target errors, set it to `undefined` (though it should throw)
-        if (is.error(target)) {
-          target = undefined
-        }
+        target = is.error(target) ? undefined : target
 
         try {
           // create the record
           const record = new Record(secret, target, undefined, salt, options.autodestruct)
           // commit the record
           const result = await set(id, record, expire)
-          app.log.info(`(${req.id}) Create secret ${id}: ${result}`)
+          server.log.info(`(${req.id}) Create secret ${id}: ${result}`)
 
           // send the result to the client
           res.status(200).send({
@@ -108,16 +106,14 @@ const create = async (
       // if there's an encrypted secret, continue (if not it should throw)
       if (!is.error(encryptedsecret)) {
         // if target errors, set it to undefined (though it should throw)
-        if (is.error(target)) {
-          target = undefined
-        }
+        target = is.error(target) ? undefined : target
 
         try {
           // create the record
           const record = new Record(secret, target, credentials.hashed, credentials.salt, options.autodestruct)
           // commit the record
           const result = await set(id, record, expire)
-          app.log.info(`(${req.id}) Create secret ${id}: ${result}`)
+          server.log.info(`(${req.id}) Create secret ${id}: ${result}`)
 
           // send the result to the client
           if (result === 'OK') {

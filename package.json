@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w & vercel",
-    "start": "node api/app"
+    "start": "node api/server"
   },
   "keywords": [],
   "author": "",

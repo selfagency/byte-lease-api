@@ -1,24 +1,55 @@
-import * as Sentry from '@sentry/node'
-import { VercelRequest, VercelResponse } from '@vercel/node'
-import Fastify, { FastifyInstance } from 'fastify'
-import FastifySentry from 'fastify-sentry'
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import Options from '../class/options'
+import create from '../crud/create'
+import destroy from '../crud/destroy'
+import read from '../crud/read'
+import update from '../crud/update'
 
-const app: FastifyInstance = Fastify({
-  logger: true
-})
+const getOpts = (opts: Options) => {
+  return new Options(opts.id, opts.secret, opts.passphrase, opts.target, opts.autodestruct, opts.expire)
+}
 
-if (process.env.SENTRY_DSN) {
-  app.register(FastifySentry, {
-    dsn: process.env.SENTRY_DSN,
-    environment: process.env.ENVIRONMENT,
-    integrations: [new Sentry.Integrations.Http({ tracing: true })],
-    tracesSampleRate: process.env.ENVIRONMENT === 'development' ? 1.0 : 0.0125
+const server = (app: FastifyInstance) => {
+  app.get('/:id', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      return await read(req, res, app, getOpts(<Options>req.body))
+    } catch (error) {
+      app.log.error(error)
+    }
+  })
+
+  app.post('/create', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      const secret = getOpts(<Options>req.body).secret
+      return await create(req, res, app, getOpts(<Options>req.body))
+    } catch (error) {
+      app.log.error(error)
+    }
+  })
+
+  app.put('/:id/update', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      return await update(req, res, app, getOpts(<Options>req.body))
+    } catch (error) {
+      app.log.error(error)
+    }
+  })
+
+  app.delete('/:id/destroy', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      return await destroy(req, res, app, getOpts(<Options>req.body))
+    } catch (error) {
+      app.log.error(error)
+    }
+  })
+
+  app.get('/', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      await res.send('OK')
+    } catch (error) {
+      app.log.error(error)
+    }
   })
 }
 
-app.register(import('./entry/server'))
-
-export default async (req: VercelRequest, res: VercelResponse) => {
-  await app.ready()
-  app.server.emit('request', req, res)
-}
+export default server

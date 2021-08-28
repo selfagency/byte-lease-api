@@ -14,7 +14,7 @@ import { decryptSecret } from '../share/crypto'
 const read = async (
   req: FastifyRequest,
   res: FastifyReply,
-  app: FastifyInstance,
+  server: FastifyInstance,
   options: Options
 ): Promise<RouteHandlerMethod | Error | unknown> => {
   const params = <Params>req.params
@@ -73,7 +73,7 @@ const read = async (
     }
 
     // is there a target?
-    target = await decryptSecret(target, passphrase || salt)
+    target = await decryptSecret(target, passphrase.toString() || salt)
     if (isIp(target)) {
       verified = req?.ips?.includes(target) || false
       if (!verified) {
@@ -86,7 +86,7 @@ const read = async (
       const response = await del(id)
       if (!is.error(response)) {
         autodestructSuccess = true
-        app.log.info(`(${req.id}) Secret ${id} successfully autodestructed`)
+        server.log.info(`(${req.id}) Secret ${id} successfully autodestructed`)
       } else {
         return errorOut(424, `Could not delete secret ${id}`)
       }
@@ -94,14 +94,14 @@ const read = async (
 
     // is there a ttl?
     if (is.error(expires)) {
-      app.log.error(`${req.id}) Could not read expiration: ${expires}`)
+      server.log.error(`${req.id}) Could not read expiration: ${expires}`)
       return errorOut(424, `Could not read expiration of secret ${id}`)
     }
 
     // return the secret
-    secret = await decryptSecret(secret, passphrase || salt)
+    secret = await decryptSecret(secret, passphrase.toString() || salt)
     if (!is.error(secret)) {
-      app.log.info(`(${req.id}) Secret ${id} successfully retrieved`)
+      server.log.info(`(${req.id}) Secret ${id} successfully retrieved`)
       res.status(200).send(new ReadResponse(secret, autodestructSuccess, is.number(expires) ? ms(expires * 1000) : '0'))
     } else {
       return errorOut(424, `Could not decrypt secret ${id}`)

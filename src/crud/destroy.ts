@@ -9,7 +9,7 @@ import get from '../db/get'
 const destroy = async (
   req: FastifyRequest,
   res: FastifyReply,
-  app: FastifyInstance,
+  server: FastifyInstance,
   options: Options
 ): Promise<RouteHandlerMethod | Error | unknown> => {
   const params = <Params>req.params
@@ -61,7 +61,7 @@ const destroy = async (
 
       // if there's no error, proceed
       if (!is.error(result)) {
-        app.log.info(`(${req.id}) Deleted secret ${id}: ${result}`)
+        server.log.info(`(${req.id}) Deleted secret ${id}: ${result}`)
         res.status(200).send({
           success: true
         })
