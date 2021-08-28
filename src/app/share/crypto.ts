@@ -3,7 +3,7 @@ import logger from './logger'
 
 const generateSalt = async (): Promise<string | Error> => {
   try {
-    const salt = await sharedSecretGenerator.generateSharedSecret(8)
+    const salt = await sharedSecretGenerator.generateSharedSecret(16)
 
     return salt
   } catch (error) {

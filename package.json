@@ -5,7 +5,8 @@
   "main": "dist/api/index.js",
   "scripts": {
     "build": "tsc",
-    "dev:start": "doppler run -- vercel dev --debug"
+    "dev:start": "doppler run -- vercel dev --debug",
+    "dev:local": "tsc; doppler run -- node serve.js | pino-pretty"
   },
   "keywords": [],
   "author": "Daniel Sieradski <daniel@self.agency>",

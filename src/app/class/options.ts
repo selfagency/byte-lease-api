@@ -3,16 +3,16 @@ class Options {
   secret?: string
   passphrase?: string | boolean
   target?: string
-  autodestruct?: boolean
-  expire?: string
+  autodestruct?: boolean | string
+  expire?: string | number
 
   constructor(
     id: string | undefined,
     secret: string | undefined,
     passphrase: string | boolean | undefined,
     target: string | undefined,
-    autodestruct: boolean | undefined,
-    expire: string | undefined
+    autodestruct: boolean | string | undefined,
+    expire: string | number | undefined
   ) {
     this.id = id
     this.secret = secret
