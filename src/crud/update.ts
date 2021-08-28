@@ -11,7 +11,7 @@ const update = async (
   const params = <Params>req.params
   const id = params.id
 
-  return res.status(200).send('OK')
+  return res.status(501).send(`Cannot update secret ${id}`)
 }
 
 export default update
