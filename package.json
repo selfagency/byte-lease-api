@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "dev": "tsc -w & vercel",
+    "start": "node api/app"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +19,7 @@
     "@types/node": "^16.7.2",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
+    "@vercel/node": "^1.12.1",
     "ecc-crypto-helper": "^1.6.1",
     "eslint": "^7.32.0",
     "eslint-config-standard": "^16.0.3",
@@ -27,7 +30,7 @@
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-security": "^1.4.0",
     "fastify": "^3.20.2",
-    "fastify-express": "^0.3.3",
+    "fastify-sentry": "^1.4.0",
     "ioredis": "^4.27.8",
     "is-ip": "^3.1.0",
     "ms": "^2.1.3",
@@ -36,6 +39,7 @@
     "pino-pretty": "^6.0.0",
     "prettier": "^2.3.2",
     "typescript": "^4.4.2",
-    "uid": "^2.0.0"
+    "uid": "^2.0.0",
+    "vercel": "^23.1.2"
   }
 }

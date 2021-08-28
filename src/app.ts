@@ -1,30 +1,24 @@
 import * as Sentry from '@sentry/node'
-import Fastify, { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import FastifyExpress from 'fastify-express'
+import { VercelRequest, VercelResponse } from '@vercel/node'
+import Fastify, { FastifyInstance } from 'fastify'
+import FastifySentry from 'fastify-sentry'
 
 const app: FastifyInstance = Fastify({
   logger: true
 })
 
-app.register(FastifyExpress)
-
 if (process.env.SENTRY_DSN) {
-  Sentry.init({
+  app.register(FastifySentry, {
     dsn: process.env.SENTRY_DSN,
+    environment: process.env.ENVIRONMENT,
     integrations: [new Sentry.Integrations.Http({ tracing: true })],
     tracesSampleRate: process.env.ENVIRONMENT === 'development' ? 1.0 : 0.0125
   })
-  app.use(Sentry.Handlers.requestHandler())
-  app.use(Sentry.Handlers.tracingHandler())
 }
 
 app.register(import('./entry/server'))
 
-if (process.env.SENTRY_DSN) {
-  app.use(Sentry.Handlers.errorHandler())
-}
-
-export default async (req: FastifyRequest, res: FastifyReply) => {
+export default async (req: VercelRequest, res: VercelResponse) => {
   await app.ready()
   app.server.emit('request', req, res)
 }
