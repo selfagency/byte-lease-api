@@ -21,5 +21,5 @@ fastify.register(app)
 
 export default async (req: VercelRequest, res: VercelResponse) => {
   await fastify.ready()
-  return fastify.server.emit('request', req, res)
+  fastify.server.emit('request', req, res)
 }

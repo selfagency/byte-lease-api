@@ -34,7 +34,7 @@ const read = async (
     passphrase = passphrase.toString()
   }
 
-  // is there a id?
+  // is there an id?
   if (!id) {
     return errorOut(400, 'id is required')
   }
