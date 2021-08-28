@@ -1,18 +1,21 @@
 class Options {
-  key?: string
+  id?: string
+  secret?: string
   passphrase?: string | boolean
   target?: string
   autodestruct?: boolean
   expire?: string
 
   constructor(
-    key: string | undefined,
+    id: string | undefined,
+    secret: string | undefined,
     passphrase: string | boolean | undefined,
     target: string | undefined,
     autodestruct: boolean | undefined,
     expire: string | undefined
   ) {
-    this.key = key
+    this.id = id
+    this.secret = secret
     this.passphrase = passphrase
     this.target = target
     this.autodestruct = autodestruct

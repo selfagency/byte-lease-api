@@ -20,11 +20,9 @@ class Passphrase {
       const passphrase = (await niceware.generatePassphrase(8)).join('-')
       const hashed = password.hash(salt + passphrase).toString('hex')
       salt = await encryptSecret(salt, passphrase)
-
       return new Passphrase(passphrase, salt, hashed)
     } catch (error) {
-      logger.error(error)
-
+      logger.error(<Error>error)
       throw error
     }
   }
@@ -33,11 +31,9 @@ class Passphrase {
     try {
       const decryptedSalt = await decryptSecret(salt, passphrase)
       const isMatch = await password.match(decryptedSalt + passphrase, hashed)
-
       return isMatch
     } catch (error) {
-      logger.error(error)
-
+      logger.error(<Error>error)
       throw error
     }
   }

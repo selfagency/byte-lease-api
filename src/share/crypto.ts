@@ -7,7 +7,7 @@ const generateSalt = async (): Promise<string | Error> => {
 
     return salt
   } catch (error) {
-    logger.error(error)
+    logger.error(<Error>error)
 
     throw error
   }
@@ -19,7 +19,7 @@ const encryptSecret = async (secret: string, passphrase: string): Promise<string
 
     return encrypted
   } catch (error) {
-    logger.error(error)
+    logger.error(<Error>error)
 
     throw error
   }
@@ -31,7 +31,7 @@ const decryptSecret = async (secret: string, passphrase: string): Promise<string
 
     return decrypted
   } catch (error) {
-    logger.error(error)
+    logger.error(<Error>error)
 
     throw error
   }

@@ -1,24 +1,28 @@
 import is from '@sindresorhus/is'
-import { FastifyInstance, FastifyReply } from 'fastify'
+import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import ms from 'ms'
 import { uid } from 'uid/secure'
-import apiRequest from '../classes/api_request'
-import Options from '../classes/options'
-import Passphrase from '../classes/passphrase'
-import Record from '../classes/record'
+import Options from '../class/options'
+import Passphrase from '../class/passphrase'
+import Record from '../class/record'
 import set from '../db/set'
 import { encryptSecret, generateSalt } from '../share/crypto'
 
-const create = async (req: apiRequest, res: FastifyReply, app: FastifyInstance, options: Options, value: string) => {
+const create = async (
+  req: FastifyRequest,
+  res: FastifyReply,
+  app: FastifyInstance,
+  options: Options
+): Promise<RouteHandlerMethod | Error | undefined> => {
   // define error event
   const errorOut = (status: number, message: string): Error => {
     let error = new Error(`(${req.id}) ${message}`)
     res.status(status).send({ error: message })
-    return error
+    throw error
   }
 
-  // generate key
-  const key = uid(32)
+  // generate id
+  const id = uid(32)
 
   // convert expiration to seconds
   let expire: string | number
@@ -37,15 +41,21 @@ const create = async (req: apiRequest, res: FastifyReply, app: FastifyInstance, 
     expire = twoDays
   }
 
+  // is there a secret?
+  let secret = options.secret
+  if (!is.string(secret)) {
+    return errorOut(400, 'Secret is required')
+  }
+
   // if `passphrase === false`, then don't use one
   if (!options.passphrase) {
     // generate salt in place of password
     const salt = await generateSalt()
 
-    // if that didn't fail and there's a value to encrypt, continue
-    if (!(salt instanceof Error) && value && options) {
+    // if that didn't fail and there's a secret to encrypt, continue
+    if (!is.error(salt) && secret) {
       // encrypt the secret
-      const encryptedValue = await encryptSecret(value, salt)
+      const encryptedsecret = await encryptSecret(secret, salt)
 
       // if there's a target specified, encrypt that too
       let target: string | Error | undefined = undefined
@@ -53,29 +63,29 @@ const create = async (req: apiRequest, res: FastifyReply, app: FastifyInstance, 
         target = await encryptSecret(options.target, salt)
       }
 
-      // if there's an encrypted value, continue (if not it should throw)
-      if (!(encryptedValue instanceof Error)) {
+      // if there's an encrypted secret, continue (if not it should throw)
+      if (!is.error(encryptedsecret)) {
         // if target errors, set it to `undefined` (though it should throw)
-        if (target instanceof Error) {
+        if (is.error(target)) {
           target = undefined
         }
 
         try {
           // create the record
-          const record = new Record(value, target, undefined, salt, options.autodestruct)
+          const record = new Record(secret, target, undefined, salt, options.autodestruct)
           // commit the record
-          const result = await set(key, record, expire)
-          app.log.info(`(${req.id}) create ${key}: ${result}`)
+          const result = await set(id, record, expire)
+          app.log.info(`(${req.id}) Create secret ${id}: ${result}`)
 
           // send the result to the client
           res.status(200).send({
-            key,
+            id,
             target: options.target,
-            expires: `${expire} seconds`,
+            expires: `${ms(expire * 1000)}`,
             result
           })
         } catch (error) {
-          return errorOut(424, 'Could not store secret')
+          return errorOut(424, `Could not store secret ${id}`)
         }
       }
     } else {
@@ -86,45 +96,50 @@ const create = async (req: apiRequest, res: FastifyReply, app: FastifyInstance, 
     const credentials = await Passphrase.generate()
 
     // if that didn't error, continue (if it did, it should throw)
-    if (!(credentials instanceof Error)) {
+    if (!is.error(credentials)) {
       // encyrpt the secret
-      const encryptedValue = await encryptSecret(value, credentials.passphrase)
+      const encryptedsecret = await encryptSecret(secret, credentials.passphrase)
       // if there's a target, encrypt the target
       let target: string | Error | undefined = undefined
       if (options.target) {
         target = await encryptSecret(options.target, credentials.passphrase)
       }
 
-      // if there's an encrypted value, continue (if not it should throw)
-      if (!(encryptedValue instanceof Error)) {
+      // if there's an encrypted secret, continue (if not it should throw)
+      if (!is.error(encryptedsecret)) {
         // if target errors, set it to undefined (though it should throw)
-        if (target instanceof Error) {
+        if (is.error(target)) {
           target = undefined
         }
 
         try {
           // create the record
-          const record = new Record(value, target, credentials.hashed, credentials.salt, options.autodestruct)
+          const record = new Record(secret, target, credentials.hashed, credentials.salt, options.autodestruct)
           // commit the record
-          const result = await set(key, record, expire)
-          app.log.info(`(${req.id}) create ${key}: ${result}`)
+          const result = await set(id, record, expire)
+          app.log.info(`(${req.id}) Create secret ${id}: ${result}`)
 
           // send the result to the client
-          res.status(200).send({
-            key,
-            passphrase: credentials.passphrase,
-            target: target,
-            expires: `${ms(expire * 1000)}`,
-            result
-          })
+          if (result === 'OK') {
+            res.status(200).send({
+              id,
+              passphrase: credentials.passphrase,
+              target: target,
+              expires: `${ms(expire * 1000)}`,
+              result
+            })
+            return
+          } else {
+            return errorOut(424, `Could not store secret ${id}: ${result}`)
+          }
         } catch (error) {
-          return errorOut(424, 'Could not store secret')
+          return errorOut(424, `Could not store secret ${id}`)
         }
       } else {
-        return errorOut(424, 'Could not encrypt secret')
+        return errorOut(424, `Could not encrypt secret ${id}`)
       }
     } else {
-      return errorOut(424, 'Could not generate credentials')
+      return errorOut(424, `Could not generate credentials for secret ${id}`)
     }
   }
 }

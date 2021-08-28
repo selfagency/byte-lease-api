@@ -1,97 +1,53 @@
-import { FastifyInstance, FastifyReply } from 'fastify'
-import apiRequest from '../classes/api_request'
-import Options from '../classes/options'
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import Options from '../class/options'
 import create from '../crud/create'
 import destroy from '../crud/destroy'
 import read from '../crud/read'
 import update from '../crud/update'
 
+const getOpts = (opts: Options) => {
+  return new Options(opts.id, opts.secret, opts.passphrase, opts.target, opts.autodestruct, opts.expire)
+}
+
 const server = (app: FastifyInstance) => {
-  app.route({
-    url: '/:id',
-    method: 'GET',
-    handler: async (req: apiRequest, res: FastifyReply) => {
-      try {
-        const options = new Options(
-          req.body.key,
-          req.body.passphrase,
-          req.body.target,
-          req.body.autodestruct,
-          req.body.expire
-        )
-        await read(req, res, app, options)
-      } catch (error) {
-        app.log.error(error)
-      }
+  app.get('/:id', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      return await read(req, res, app, getOpts(<Options>req.body))
+    } catch (error) {
+      app.log.error(error)
     }
   })
 
-  app.route({
-    url: '/:id/create',
-    method: 'POST',
-    handler: async (req: apiRequest, res: FastifyReply) => {
-      try {
-        const options = new Options(
-          req.body.key,
-          req.body.passphrase,
-          req.body.target,
-          req.body.autodestruct,
-          req.body.expire
-        )
-        await create(req, res, app, options, req.body.value)
-      } catch (error) {
-        app.log.error(error)
-      }
+  app.post('/create', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      const secret = getOpts(<Options>req.body).secret
+      return await create(req, res, app, getOpts(<Options>req.body))
+    } catch (error) {
+      app.log.error(error)
     }
   })
 
-  app.route({
-    url: '/:id/update',
-    method: 'PUT',
-    handler: async (req: apiRequest, res: FastifyReply) => {
-      try {
-        const options = new Options(
-          req.body.key,
-          req.body.passphrase,
-          req.body.target,
-          req.body.autodestruct,
-          req.body.expire
-        )
-        await update(req, res, app, options)
-      } catch (error) {
-        app.log.error(error)
-      }
+  app.put('/:id/update', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      return await update(req, res, app, getOpts(<Options>req.body))
+    } catch (error) {
+      app.log.error(error)
     }
   })
 
-  app.route({
-    url: '/:id/destroy',
-    method: 'DELETE',
-    handler: async (req: apiRequest, res: FastifyReply) => {
-      try {
-        const options = new Options(
-          req.body.key,
-          req.body.passphrase,
-          req.body.target,
-          req.body.autodestruct,
-          req.body.expire
-        )
-        await destroy(req, res, app, options)
-      } catch (error) {
-        app.log.error(error)
-      }
+  app.delete('/:id/destroy', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      return await destroy(req, res, app, getOpts(<Options>req.body))
+    } catch (error) {
+      app.log.error(error)
     }
   })
 
-  app.route({
-    url: '/',
-    method: 'GET',
-    handler: async (req, res) => {
-      try {
-        await res.send('OK')
-      } catch (error) {
-        app.log.error(error)
-      }
+  app.get('/', {}, async (req: FastifyRequest, res: FastifyReply) => {
+    try {
+      await res.send('OK')
+    } catch (error) {
+      app.log.error(error)
     }
   })
 }

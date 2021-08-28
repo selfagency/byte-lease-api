@@ -1,14 +1,13 @@
 import db from '../share/db'
 import logger from '../share/logger'
 
-const set = async (key, record, expire): Promise<string | Error> => {
+const set = async (id, record, expire): Promise<string | Error> => {
   try {
-    const { value, target, passphrase, autodestruct } = record
-
+    const { secret, target, passphrase, autodestruct } = record
     const res = await db.set(
-      key,
+      id,
       JSON.stringify({
-        value,
+        secret,
         target,
         passphrase,
         autodestruct
@@ -16,10 +15,9 @@ const set = async (key, record, expire): Promise<string | Error> => {
       'EX',
       expire
     )
-
     return res
   } catch (error) {
-    logger.error(error)
+    logger.error(<Error>error)
     throw error
   }
 }

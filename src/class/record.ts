@@ -1,18 +1,18 @@
 class Record {
-  value: string
+  secret: string
   target?: string
   passphrase?: string
   salt?: string
   autodestruct: boolean
 
   constructor(
-    value: string,
+    secret: string,
     target: string | undefined,
     passphrase: string | undefined,
     salt: string | undefined,
     autodestruct: boolean = true
   ) {
-    this.value = value
+    this.secret = secret
     this.target = target
     this.passphrase = passphrase
     this.salt = salt

@@ -1,26 +1,29 @@
 import is from '@sindresorhus/is'
-import { FastifyInstance, FastifyReply } from 'fastify'
+import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import isIp from 'is-ip'
-import apiRequest from '../classes/api_request'
-import Options from '../classes/options'
-import Passphrase from '../classes/passphrase'
+import ms from 'ms'
+import Options from '../class/options'
+import Passphrase from '../class/passphrase'
+import ReadResponse from '../class/read_response'
 import del from '../db/del'
 import get from '../db/get'
+import ttl from '../db/ttl'
 import { decryptSecret } from '../share/crypto'
 
 const read = async (
-  req: apiRequest,
+  req: FastifyRequest,
   res: FastifyReply,
   app: FastifyInstance,
   options: Options
-): Promise<void | Error> => {
-  let { key, passphrase } = options
+): Promise<RouteHandlerMethod | Error | unknown> => {
+  let { id, passphrase } = options
+  let autodestructSuccess = false
 
   // define error event
   const errorOut = (status: number, message: string): Error => {
     let error = new Error(`(${req.id}) ${message}`)
     res.status(status).send({ error: message })
-    return error
+    throw error
   }
 
   // make sure user-provided passphrase is a string
@@ -28,24 +31,25 @@ const read = async (
     passphrase = passphrase.toString()
   }
 
-  // is there a key?
-  if (!key) {
-    return errorOut(400, 'Key is required')
+  // is there a id?
+  if (!id) {
+    return errorOut(400, 'id is required')
   }
 
   // get the record
-  const $record = await get(key)
+  const $record = await get(id)
 
   // if there's a record, continue
-  if ($record && !($record instanceof Error)) {
+  if ($record && !is.error($record)) {
     const record = JSON.parse($record)
     const hashed = record.passphrase
-    let { value, target, autodestruct, salt } = record
+    const expires = await ttl(id)
+    let { secret, target, autodestruct, salt } = record
     let verified: boolean | Error = false
 
     // is there a salt?
     if (!is.string(salt)) {
-      return errorOut(424, `${key} missing salt`)
+      return errorOut(424, `Could not retrieve salt of secret ${id}`)
     }
 
     // is there a passphrase?
@@ -60,9 +64,9 @@ const read = async (
       }
     }
 
-    // is the value legit data?
-    if (!is.string(value)) {
-      return errorOut(424, `${key} missing secret`)
+    // is the secret legit data?
+    if (!is.string(secret)) {
+      return errorOut(424, `Could not retrieve secret ${id}`)
     }
 
     // is there a target?
@@ -76,24 +80,32 @@ const read = async (
 
     // is there an autodestruct?
     if (autodestruct) {
-      const response = await del(key)
-      if (response instanceof Error) {
-        return errorOut(424, `${key} could not be deleted`)
+      const response = await del(id)
+      if (!is.error(response)) {
+        autodestructSuccess = true
+        app.log.info(`(${req.id}) Secret ${id} successfully autodestructed`)
       } else {
-        app.log.info(`(${req.id}) ${key} successfully autodestructed`)
+        return errorOut(424, `Could not delete secret ${id}`)
       }
     }
 
+    // is there a ttl?
+    if (is.error(expires)) {
+      app.log.error(`${req.id}) Could not read expiration: ${expires}`)
+      return errorOut(424, `Could not read expiration of secret ${id}`)
+    }
+
     // return the secret
-    value = await decryptSecret(value, passphrase || salt)
-    if (!(value instanceof Error)) {
-      return value
+    secret = await decryptSecret(secret, passphrase || salt)
+    if (!is.error(secret)) {
+      app.log.info(`(${req.id}) Secret ${id} successfully retrieved`)
+      res.status(200).send(new ReadResponse(secret, autodestructSuccess, is.number(expires) ? ms(expires * 1000) : '0'))
     } else {
-      return errorOut(424, 'Could not decrypt secret')
+      return errorOut(424, `Could not decrypt secret ${id}`)
     }
   } else {
     // if no record, return 404
-    return errorOut(404, `Could not find secret ${key}`)
+    return errorOut(404, `Could not find secret ${id}`)
   }
 }
 
