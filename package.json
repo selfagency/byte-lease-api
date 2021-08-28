@@ -10,8 +10,12 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@sindresorhus/is": "^4.0.1",
+    "@types/ms": "^0.7.31",
+    "@types/node": "^16.7.2",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
+    "ecc-crypto-helper": "^1.6.1",
     "eslint": "^7.32.0",
     "eslint-config-standard": "^16.0.3",
     "eslint-gitignore": "^0.1.0",
@@ -20,19 +24,15 @@
     "eslint-plugin-prettier": "^3.4.1",
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-security": "^1.4.0",
-    "pino-pretty": "^6.0.0",
-    "prettier": "^2.3.2",
-    "typescript": "^4.4.2"
-  },
-  "dependencies": {
-    "@types/node": "^16.7.2",
-    "D": "^1.0.0",
-    "ecc-crypto-helper": "^1.6.1",
     "fastify": "^3.20.2",
     "ioredis": "^4.27.8",
+    "is-ip": "^3.1.0",
     "ms": "^2.1.3",
     "niceware-eff": "^1.0.0",
     "pino": "^7.0.0-rc.3",
+    "pino-pretty": "^6.0.0",
+    "prettier": "^2.3.2",
+    "typescript": "^4.4.2",
     "uid": "^2.0.0"
   }
 }
