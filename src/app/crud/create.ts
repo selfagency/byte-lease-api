@@ -81,7 +81,8 @@ const create = async (
             return errorOut(424, 'Could not send email')
           }
         } catch (error) {
-          return errorOut(424, error.message)
+          const message = (<Error>error).message as string
+          return errorOut(424, message)
         }
 
         try {
