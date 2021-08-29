@@ -1,10 +1,10 @@
+import is from '@sindresorhus/is'
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import ms from 'ms'
 import { uid } from 'uid/secure'
-import { Credentials, MailerResponse, Options, Record } from '../class'
+import { Credentials, Options, Record } from '../class'
 import { set } from '../db'
-import { crypto, expiry, mailer, validations } from '../lib'
-import { sharedSecret } from '../templates'
+import { crypto, expiry, targetHandler, validations } from '../lib'
 
 const create = async (
   req: FastifyRequest,
@@ -16,6 +16,49 @@ const create = async (
   const errorOut = (status: number, message: string): FastifyReply => {
     server.log.error(`(${req.id} ${message})`)
     return res.status(status).send({ error: message })
+  }
+
+  const createRecord = async (
+    id: string,
+    passphrase: Credentials | string | undefined,
+    target: string | undefined,
+    encryptedSecret: string,
+    encryptedTarget: string | undefined,
+    selfDestruct: boolean,
+    expire: number
+  ) => {
+    try {
+      // parse passphrase
+      let hashed: string | undefined, salt: string | undefined
+      if (passphrase && !is.string(passphrase)) {
+        hashed = passphrase.hashed
+        salt = passphrase.salt
+      }
+
+      // create the record
+      const record = new Record(encryptedSecret, encryptedTarget, hashed, salt, selfDestruct)
+
+      // commit the record
+      const result = await set(id, record, expire)
+      server.log.info(`(${req.id}) Create secret ${id}: ${result}`)
+
+      // send the result to the client
+      if (result === 'OK') {
+        return res.status(200).send({
+          id,
+          passphrase: is.string(passphrase) ? passphrase : passphrase?.passphrase,
+          target,
+          selfDestruct,
+          expires: `${ms(expire * 1000)}`,
+          result
+        })
+      } else {
+        throw new Error(`Could not store secret`)
+      }
+    } catch (error) {
+      const message = (<Error>error).message as string
+      return errorOut(424, `${message} ${id}`)
+    }
   }
 
   // validations
@@ -66,52 +109,12 @@ const create = async (
         return errorOut(424, message)
       }
 
-      // if there's a target specified, encrypt that too
-      let encryptedTarget: string | undefined
-      if (target) {
-        try {
-          const mailSentSuccessfully = (await mailer(
-            target,
-            "Someone's shared a secret with you",
-            sharedSecret(id),
-            server
-          )) as MailerResponse
+      // if there's a target, handle then encrypt the target
+      const encryptedTarget: string | undefined = target
+        ? await targetHandler(target, id, salt, server, errorOut)
+        : undefined
 
-          if (!mailSentSuccessfully) {
-            return errorOut(424, 'Could not send email')
-          }
-        } catch (error) {
-          const message = (<Error>error).message as string
-          return errorOut(424, message)
-        }
-
-        try {
-          encryptedTarget = (await crypto.encryptSecret(target, salt)) as string
-        } catch (error) {
-          const message = (<Error>error).message as string
-          return errorOut(424, message)
-        }
-      } else {
-        encryptedTarget = undefined
-      }
-
-      try {
-        // create the record
-        const record = new Record(encryptedSecret, encryptedTarget, undefined, salt, selfDestruct)
-        // commit the record
-        const result = await set(id, record, expire)
-        server.log.info(`(${req.id}) Create secret ${id}: ${result}`)
-
-        // send the result to the client
-        return res.status(200).send({
-          id,
-          target: options.target,
-          expires: `${ms(expire * 1000)}`,
-          result
-        })
-      } catch (error) {
-        return errorOut(424, `Could not store secret ${id}`)
-      }
+      return createRecord(id, undefined, target, encryptedSecret, encryptedTarget, selfDestruct, expire)
     }
   } else {
     // if a passphrase is requested
@@ -134,45 +137,12 @@ const create = async (
       return errorOut(424, message)
     }
 
-    // if there's a target, encrypt the target
-    let encryptedTarget: string | undefined
-    if (target) {
-      try {
-        encryptedTarget = (await crypto.encryptSecret(target, credentials.passphrase)) as string
-      } catch (error) {
-        return errorOut(424, `Could not encrypt secret ${id}`)
-      }
-    } else {
-      encryptedTarget = undefined
-    }
+    // if there's a target, handle then enrypt the target
+    const encryptedTarget: string | undefined = target
+      ? await targetHandler(target, id, credentials.passphrase, server, errorOut)
+      : undefined
 
-    try {
-      const { hashed, salt } = credentials
-
-      // create the record
-      const record = new Record(encryptedSecret, encryptedTarget, hashed, salt, selfDestruct)
-
-      // commit the record
-      const result = await set(id, record, expire)
-      server.log.info(`(${req.id}) Create secret ${id}: ${result}`)
-
-      // send the result to the client
-      if (result === 'OK') {
-        return res.status(200).send({
-          id,
-          passphrase: credentials.passphrase,
-          target: target,
-          selfDestruct,
-          expires: `${ms(expire * 1000)}`,
-          result
-        })
-      } else {
-        throw new Error(`Could not store secret`)
-      }
-    } catch (error) {
-      const message = (<Error>error).message as string
-      return errorOut(424, `${message} ${id}`)
-    }
+    return createRecord(id, credentials, target, encryptedSecret, encryptedTarget, selfDestruct, expire)
   }
 }
 
