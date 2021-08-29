@@ -47,4 +47,6 @@ const decryptSecret = async (secret: string, passphrase: string): Promise<string
   }
 }
 
-export { generatePassphrase, verifyPassphrase, encryptSecret, decryptSecret }
+const crypto = { generatePassphrase, verifyPassphrase, encryptSecret, decryptSecret }
+
+export default crypto

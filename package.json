@@ -29,6 +29,7 @@
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-security": "^1.4.0",
     "fastify": "^3.20.2",
+    "fastify-mailer": "^2.2.0",
     "fastify-sentry": "^1.4.0",
     "generate-passphrase": "^1.2.0",
     "ioredis": "^4.27.8",

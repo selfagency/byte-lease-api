@@ -1,11 +1,11 @@
 class ReadResponse {
   secret: string
-  autodestruct: boolean
+  selfDestruct: boolean
   expires: string
 
-  constructor(secret: string, autodestruct: boolean, expires: string) {
+  constructor(secret: string, selfDestruct: boolean, expires: string) {
     this.secret = secret
-    this.autodestruct = autodestruct
+    this.selfDestruct = selfDestruct
     this.expires = expires
   }
 }

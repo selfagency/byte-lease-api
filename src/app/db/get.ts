@@ -1,5 +1,4 @@
-import db from '../share/db'
-import logger from '../share/logger'
+import { db, logger } from '../lib'
 
 const get = async (id: string): Promise<string | Error> => {
   try {

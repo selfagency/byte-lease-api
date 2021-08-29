@@ -3,20 +3,20 @@ class Record {
   target?: string
   passphrase?: string
   salt?: string
-  autodestruct: boolean
+  selfDestruct: boolean
 
   constructor(
     secret: string,
     target: string | undefined,
     passphrase: string | undefined,
     salt: string,
-    autodestruct: boolean = true
+    selfDestruct: boolean = true
   ) {
     this.secret = secret
     this.target = target
     this.passphrase = passphrase
     this.salt = salt
-    this.autodestruct = autodestruct
+    this.selfDestruct = selfDestruct
   }
 }
 

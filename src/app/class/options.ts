@@ -3,7 +3,7 @@ class Options {
   secret?: string
   passphrase?: string | boolean
   target?: string
-  autodestruct?: boolean | string
+  selfDestruct?: boolean | string
   expire?: string | number
 
   constructor(
@@ -11,14 +11,14 @@ class Options {
     secret: string | undefined,
     passphrase: string | boolean | undefined,
     target: string | undefined,
-    autodestruct: boolean | string | undefined,
+    selfDestruct: boolean | string | undefined,
     expire: string | number | undefined
   ) {
     this.id = id
     this.secret = secret
     this.passphrase = passphrase
     this.target = target
-    this.autodestruct = autodestruct
+    this.selfDestruct = selfDestruct
     this.expire = expire
   }
 }

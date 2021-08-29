@@ -1,12 +1,8 @@
 import is from '@sindresorhus/is'
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
-import Options from '../class/options'
-import Params from '../class/params'
-import Record from '../class/record'
-import del from '../db/del'
-import get from '../db/get'
-import { verifyPassphrase } from '../share/crypto'
-import validations from '../share/validations'
+import { Options, Params, Record } from '../class'
+import { del, get } from '../db'
+import { crypto, validations } from '../lib'
 
 const destroy = async (
   req: FastifyRequest,
@@ -58,7 +54,7 @@ const destroy = async (
     // verify the passphrase
     try {
       if (is.string(passphrase)) {
-        verified = await verifyPassphrase(passphrase, hashed, salt)
+        verified = await crypto.verifyPassphrase(passphrase, hashed, salt)
       } else {
         verified = false
       }

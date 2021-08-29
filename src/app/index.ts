@@ -1,9 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import Options from './class/options'
-import create from './crud/create'
-import destroy from './crud/destroy'
-import read from './crud/read'
-import update from './crud/update'
+import { Options } from './class'
+import { create, destroy, read, update } from './crud'
 
 const getOpts = (opts: Options) => {
   if (opts) {
@@ -12,7 +9,7 @@ const getOpts = (opts: Options) => {
       opts.secret,
       opts.passphrase || true,
       opts.target,
-      opts.autodestruct,
+      opts.selfDestruct,
       opts.expire
     )
   } else {

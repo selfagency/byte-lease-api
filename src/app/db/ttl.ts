@@ -1,6 +1,5 @@
 import ms from 'ms'
-import db from '../share/db'
-import logger from '../share/logger'
+import { db, logger } from '../lib'
 
 const ttl = async (id: string): Promise<string | Error> => {
   try {

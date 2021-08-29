@@ -1,13 +1,10 @@
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import ms from 'ms'
 import { uid } from 'uid/secure'
-import Credentials from '../class/credentials'
-import Options from '../class/options'
-import Record from '../class/record'
-import set from '../db/set'
-import { encryptSecret, generatePassphrase } from '../share/crypto'
-import expiry from '../share/expiry'
-import validations from '../share/validations'
+import { Credentials, MailerResponse, Options, Record } from '../class'
+import { set } from '../db'
+import { crypto, expiry, mailer, validations } from '../lib'
+import { sharedSecret } from '../templates'
 
 const create = async (
   req: FastifyRequest,
@@ -33,7 +30,7 @@ const create = async (
   // expand options
   const id = uid(48)
   let secret: string = options.secret as string
-  const autodestruct = Boolean(options.autodestruct)
+  const selfDestruct = Boolean(options.selfDestruct)
   const genPassphrase = Boolean(options.passphrase)
 
   // set expiration ttl
@@ -63,7 +60,7 @@ const create = async (
       // encrypt the secret
       let encryptedSecret: string
       try {
-        encryptedSecret = (await encryptSecret(secret, salt)) as string
+        encryptedSecret = (await crypto.encryptSecret(secret, salt)) as string
       } catch (error) {
         const message = (<Error>error).message as string
         return errorOut(424, message)
@@ -73,7 +70,22 @@ const create = async (
       let encryptedTarget: string | undefined
       if (target) {
         try {
-          encryptedTarget = (await encryptSecret(target, salt)) as string
+          const mailSentSuccessfully = (await mailer(
+            target,
+            "Someone's shared a secret with you",
+            sharedSecret(id),
+            server
+          )) as MailerResponse
+
+          if (!mailSentSuccessfully) {
+            return errorOut(424, 'Could not send email')
+          }
+        } catch (error) {
+          return errorOut(424, error.message)
+        }
+
+        try {
+          encryptedTarget = (await crypto.encryptSecret(target, salt)) as string
         } catch (error) {
           const message = (<Error>error).message as string
           return errorOut(424, message)
@@ -84,7 +96,7 @@ const create = async (
 
       try {
         // create the record
-        const record = new Record(encryptedSecret, encryptedTarget, undefined, salt, autodestruct)
+        const record = new Record(encryptedSecret, encryptedTarget, undefined, salt, selfDestruct)
         // commit the record
         const result = await set(id, record, expire)
         server.log.info(`(${req.id}) Create secret ${id}: ${result}`)
@@ -107,7 +119,7 @@ const create = async (
 
     // generate a passphrase
     try {
-      credentials = (await generatePassphrase()) as Credentials
+      credentials = (await crypto.generatePassphrase()) as Credentials
     } catch (error) {
       return errorOut(424, `Could not generate credentials for secret ${id}`)
     }
@@ -115,7 +127,7 @@ const create = async (
     // encrypt the secret
     let encryptedSecret: string
     try {
-      encryptedSecret = (await encryptSecret(secret, credentials.passphrase)) as string
+      encryptedSecret = (await crypto.encryptSecret(secret, credentials.passphrase)) as string
     } catch (error) {
       const message = (<Error>error).message as string
       return errorOut(424, message)
@@ -125,7 +137,7 @@ const create = async (
     let encryptedTarget: string | undefined
     if (target) {
       try {
-        encryptedTarget = (await encryptSecret(target, credentials.passphrase)) as string
+        encryptedTarget = (await crypto.encryptSecret(target, credentials.passphrase)) as string
       } catch (error) {
         return errorOut(424, `Could not encrypt secret ${id}`)
       }
@@ -137,7 +149,7 @@ const create = async (
       const { hashed, salt } = credentials
 
       // create the record
-      const record = new Record(encryptedSecret, encryptedTarget, hashed, salt, autodestruct)
+      const record = new Record(encryptedSecret, encryptedTarget, hashed, salt, selfDestruct)
 
       // commit the record
       const result = await set(id, record, expire)
@@ -149,7 +161,7 @@ const create = async (
           id,
           passphrase: credentials.passphrase,
           target: target,
-          autodestruct,
+          selfDestruct,
           expires: `${ms(expire * 1000)}`,
           result
         })

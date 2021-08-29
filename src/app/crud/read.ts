@@ -1,15 +1,9 @@
 import is from '@sindresorhus/is'
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import isIp from 'is-ip'
-import Options from '../class/options'
-import Params from '../class/params'
-import ReadResponse from '../class/read_response'
-import Record from '../class/record'
-import del from '../db/del'
-import get from '../db/get'
-import ttl from '../db/ttl'
-import { decryptSecret, verifyPassphrase } from '../share/crypto'
-import validations from '../share/validations'
+import { Options, Params, Query, ReadResponse, Record } from '../class'
+import { del, get, ttl } from '../db'
+import { crypto, validations } from '../lib'
 
 const read = async (
   req: FastifyRequest,
@@ -56,8 +50,8 @@ const read = async (
   // if there's a record, continue
   const passphrase = options.passphrase
   const hashed = record.passphrase
-  let { secret, target, autodestruct, salt } = record
-  let autodestructSuccess: boolean = false
+  let { secret, target, selfDestruct, salt } = record
+  let selfDestructSuccess: boolean = false
   let verified: boolean | Error = false
 
   // is there a salt?
@@ -71,7 +65,7 @@ const read = async (
       return errorOut(401, 'Passphrase is required')
     }
 
-    verified = await verifyPassphrase(passphrase, hashed, salt)
+    verified = await crypto.verifyPassphrase(passphrase, hashed, salt)
     if (!verified) {
       return errorOut(401, 'Passphrase is incorrect')
     }
@@ -86,25 +80,29 @@ const read = async (
   let decryptedTarget: string
   if (target) {
     try {
-      decryptedTarget = (await decryptSecret(target, passphrase?.toString() || salt)) as string
+      decryptedTarget = (await crypto.decryptSecret(target, passphrase?.toString() || salt)) as string
     } catch (error) {
       return errorOut(424, 'Could not decrypt secret')
     }
+
     if (isIp(decryptedTarget)) {
       verified = req?.ips?.includes(decryptedTarget) || false
       if (!verified) {
         return errorOut(401, 'Access to secret restricted by IP')
       }
+    } else {
+      const query = <Query>req.query
+      verified = query.access_token === decryptedTarget
     }
   }
 
-  // is there an autodestruct?
-  if (autodestruct) {
+  // is there an selfDestruct?
+  if (selfDestruct) {
     let response: string
     try {
       response = (await del(id)) as string
-      autodestructSuccess = true
-      server.log.info(`(${req.id}) Secret ${id} autodestructed: ${response}`)
+      selfDestructSuccess = true
+      server.log.info(`(${req.id}) Secret ${id} selfDestructed: ${response}`)
     } catch (error) {
       return errorOut(424, `Could not delete secret ${id}`)
     }
@@ -122,9 +120,9 @@ const read = async (
   // return the secret
   let decryptedSecret: string
   try {
-    decryptedSecret = (await decryptSecret(secret, passphrase?.toString() || salt)) as string
+    decryptedSecret = (await crypto.decryptSecret(secret, passphrase?.toString() || salt)) as string
     server.log.info(`(${req.id}) Secret ${id} successfully retrieved`)
-    return res.status(200).send(new ReadResponse(decryptedSecret, autodestructSuccess, expires))
+    return res.status(200).send(new ReadResponse(decryptedSecret, selfDestructSuccess, expires))
   } catch (error) {
     return errorOut(424, `Could not decrypt secret ${id}`)
   }
