@@ -1,11 +1,11 @@
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import ms from 'ms'
 import { uid } from 'uid/secure'
+import Credentials from '../class/credentials'
 import Options from '../class/options'
-import Passphrase from '../class/passphrase'
 import Record from '../class/record'
 import set from '../db/set'
-import { encryptSecret, generateSalt } from '../share/crypto'
+import { encryptSecret, generatePassphrase } from '../share/crypto'
 import expiry from '../share/expiry'
 import validations from '../share/validations'
 
@@ -32,7 +32,7 @@ const create = async (
 
   // expand options
   const id = uid(48)
-  let secret = options.secret as string
+  let secret: string = options.secret as string
   const autodestruct = Boolean(options.autodestruct)
   const genPassphrase = Boolean(options.passphrase)
 
@@ -52,40 +52,39 @@ const create = async (
 
     // generate salt in place of password
     try {
-      salt = (await generateSalt()) as string
-      server.log.info(`salt: ${salt}`)
+      salt = uid(64)
     } catch (error) {
       const message = (<Error>error).message as string
       return errorOut(424, message)
     }
 
     // if that didn't fail and there's a secret to encrypt, continue
-    if (salt && secret) {
+    if (salt && secret.length) {
       // encrypt the secret
+      let encryptedSecret: string
       try {
-        secret = (await encryptSecret(secret, salt)) as string
-        server.log.info(`encryptedSecret: ${secret}`)
+        encryptedSecret = (await encryptSecret(secret, salt)) as string
       } catch (error) {
         const message = (<Error>error).message as string
         return errorOut(424, message)
       }
 
       // if there's a target specified, encrypt that too
+      let encryptedTarget: string | undefined
       if (target) {
         try {
-          target = (await encryptSecret(target, salt)) as string
-          server.log.info(`encryptedTarget: ${secret}`)
+          encryptedTarget = (await encryptSecret(target, salt)) as string
         } catch (error) {
           const message = (<Error>error).message as string
           return errorOut(424, message)
         }
       } else {
-        target = undefined
+        encryptedTarget = undefined
       }
 
       try {
         // create the record
-        const record = new Record(secret, target, undefined, salt, autodestruct)
+        const record = new Record(encryptedSecret, encryptedTarget, undefined, salt, autodestruct)
         // commit the record
         const result = await set(id, record, expire)
         server.log.info(`(${req.id}) Create secret ${id}: ${result}`)
@@ -103,37 +102,43 @@ const create = async (
     }
   } else {
     // if a passphrase is requested
-    let credentials: Passphrase
+    let credentials: Credentials
     let target: string | undefined = options.target
 
     // generate a passphrase
     try {
-      credentials = (await Passphrase.generate()) as Passphrase
-      server.log.info(`credentials: ${JSON.stringify(credentials)}`)
+      credentials = (await generatePassphrase()) as Credentials
     } catch (error) {
       return errorOut(424, `Could not generate credentials for secret ${id}`)
     }
 
-    // encyrpt the secret
+    // encrypt the secret
+    let encryptedSecret: string
     try {
-      secret = (await encryptSecret(secret, credentials.passphrase)) as string
+      encryptedSecret = (await encryptSecret(secret, credentials.passphrase)) as string
     } catch (error) {
       const message = (<Error>error).message as string
       return errorOut(424, message)
     }
 
     // if there's a target, encrypt the target
+    let encryptedTarget: string | undefined
     if (target) {
       try {
-        target = (await encryptSecret(target, credentials.passphrase)) as string
+        encryptedTarget = (await encryptSecret(target, credentials.passphrase)) as string
       } catch (error) {
         return errorOut(424, `Could not encrypt secret ${id}`)
       }
+    } else {
+      encryptedTarget = undefined
     }
 
     try {
+      const { hashed, salt } = credentials
+
       // create the record
-      const record = new Record(secret, target, credentials.hashed, credentials.salt, autodestruct)
+      const record = new Record(encryptedSecret, encryptedTarget, hashed, salt, autodestruct)
+
       // commit the record
       const result = await set(id, record, expire)
       server.log.info(`(${req.id}) Create secret ${id}: ${result}`)

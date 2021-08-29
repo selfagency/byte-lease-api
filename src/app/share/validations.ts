@@ -22,7 +22,7 @@ const validations = async (operation: string, options: any): Promise<Options> =>
   switch (operation) {
     case 'create':
       if (!secret) throw new Error('Secret is required')
-      return new Options(undefined, secret, undefined, target, autodestruct, expire)
+      return new Options(undefined, secret, passphrase, target, autodestruct, expire)
     case 'update':
       return new Options(undefined, undefined, undefined, undefined, undefined, undefined)
     case 'destroy':

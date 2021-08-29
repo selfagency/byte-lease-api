@@ -1,6 +1,8 @@
 // Require the framework and instantiate it
 const fastify = require('fastify')({
-  logger: true
+  logger: {
+    level: process.env.environment === 'production' ? 'info' : 'debug'
+  }
 })
 
 // Declare a route

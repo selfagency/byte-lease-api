@@ -2,10 +2,10 @@ import is from '@sindresorhus/is'
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import Options from '../class/options'
 import Params from '../class/params'
-import Passphrase from '../class/passphrase'
 import Record from '../class/record'
 import del from '../db/del'
 import get from '../db/get'
+import { verifyPassphrase } from '../share/crypto'
 import validations from '../share/validations'
 
 const destroy = async (
@@ -23,6 +23,7 @@ const destroy = async (
   // get key
   const params = <Params>req.params
   const id = (params.id || options.id) as string
+  options.id = id
 
   // validate options
   try {
@@ -55,7 +56,16 @@ const destroy = async (
   // does the record have passphrase?
   if (hashed && is.string(hashed)) {
     // verify the passphrase
-    verified = await Passphrase.verify(passphrase, salt, hashed)
+    try {
+      if (is.string(passphrase)) {
+        verified = await verifyPassphrase(passphrase, hashed, salt)
+      } else {
+        verified = false
+      }
+    } catch (error) {
+      return errorOut(424, `Could not verify passphrase of secret ${id}`)
+    }
+
     if (!verified) {
       server.log.error(`(${req.id}) Failed passphrase attempt on ${id}`)
       return errorOut(401, 'Passphrase is incorrect')

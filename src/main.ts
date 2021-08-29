@@ -5,7 +5,9 @@ import FastifySentry from 'fastify-sentry'
 import app from './app'
 
 const fastify: FastifyInstance = Fastify({
-  logger: true
+  logger: {
+    level: process.env.environment === 'production' ? 'info' : 'debug'
+  }
 })
 
 if (process.env.SENTRY_DSN) {

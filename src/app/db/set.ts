@@ -3,13 +3,14 @@ import logger from '../share/logger'
 
 const set = async (id, record, expire): Promise<string | Error> => {
   try {
-    const { secret, target, passphrase, autodestruct } = record
+    const { secret, target, passphrase, salt, autodestruct } = record
     const res = await db.set(
       id,
       JSON.stringify({
         secret,
         target,
         passphrase,
+        salt,
         autodestruct
       }),
       'EX',

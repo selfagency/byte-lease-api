@@ -3,13 +3,12 @@ import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } fro
 import isIp from 'is-ip'
 import Options from '../class/options'
 import Params from '../class/params'
-import Passphrase from '../class/passphrase'
 import ReadResponse from '../class/read_response'
 import Record from '../class/record'
 import del from '../db/del'
 import get from '../db/get'
 import ttl from '../db/ttl'
-import { decryptSecret } from '../share/crypto'
+import { decryptSecret, verifyPassphrase } from '../share/crypto'
 import validations from '../share/validations'
 
 const read = async (
@@ -27,6 +26,7 @@ const read = async (
   // get key
   const params = <Params>req.params
   const id = (params.id || options.id) as string
+  options.id = id
 
   // validate options
   try {
@@ -54,7 +54,7 @@ const read = async (
   let verified: boolean | Error = false
 
   // is there a salt?
-  if (!is.string(salt)) {
+  if (!salt) {
     return errorOut(424, `Could not retrieve salt of secret ${id}`)
   }
 
@@ -64,26 +64,27 @@ const read = async (
       return errorOut(401, 'Passphrase is required')
     }
 
-    verified = await Passphrase.verify(passphrase, salt, hashed)
+    verified = await verifyPassphrase(passphrase, hashed, salt)
     if (!verified) {
       return errorOut(401, 'Passphrase is incorrect')
     }
   }
 
-  // is the secret legit data?
-  if (!is.string(secret)) {
+  // is there a secret?
+  if (!secret) {
     return errorOut(424, `Could not retrieve secret ${id}`)
   }
 
   // is there a target?
-  if (is.string(target)) {
+  let decryptedTarget: string
+  if (target) {
     try {
-      target = (await decryptSecret(target, passphrase?.toString() || salt)) as string
+      decryptedTarget = (await decryptSecret(target, passphrase?.toString() || salt)) as string
     } catch (error) {
       return errorOut(424, 'Could not decrypt secret')
     }
-    if (isIp(target)) {
-      verified = req?.ips?.includes(target) || false
+    if (isIp(decryptedTarget)) {
+      verified = req?.ips?.includes(decryptedTarget) || false
       if (!verified) {
         return errorOut(401, 'Access to secret restricted by IP')
       }
@@ -112,10 +113,11 @@ const read = async (
   }
 
   // return the secret
+  let decryptedSecret: string
   try {
-    secret = (await decryptSecret(secret, passphrase?.toString() || salt)) as string
+    decryptedSecret = (await decryptSecret(secret, passphrase?.toString() || salt)) as string
     server.log.info(`(${req.id}) Secret ${id} successfully retrieved`)
-    return res.status(200).send(new ReadResponse(secret, autodestructSuccess, expires))
+    return res.status(200).send(new ReadResponse(decryptedSecret, autodestructSuccess, expires))
   } catch (error) {
     return errorOut(424, `Could not decrypt secret ${id}`)
   }

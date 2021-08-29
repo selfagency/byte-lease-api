@@ -6,38 +6,49 @@ import read from './crud/read'
 import update from './crud/update'
 
 const getOpts = (opts: Options) => {
-  return new Options(
-    (opts.id = undefined),
-    opts.secret,
-    (opts.passphrase = true),
-    opts.target,
-    opts.autodestruct,
-    opts.expire
-  )
+  if (opts) {
+    return new Options(
+      opts.id || undefined,
+      opts.secret,
+      opts.passphrase || true,
+      opts.target,
+      opts.autodestruct,
+      opts.expire
+    )
+  } else {
+    return new Options(undefined, undefined, undefined, undefined, undefined, undefined)
+  }
 }
 
 const app = (server: FastifyInstance) => {
   server.post('/create', {}, async (req: FastifyRequest, res: FastifyReply) => {
     try {
-      return await create(req, res, server, getOpts(<Options>req.body))
+      const options = getOpts(<Options>req.body)
+      return await create(req, res, server, options)
     } catch (error) {
       server.log.error(error)
       throw error
     }
   })
 
-  server.get('/:id', {}, async (req: FastifyRequest, res: FastifyReply) => {
-    try {
-      return await read(req, res, server, getOpts(<Options>req.body))
-    } catch (error) {
-      server.log.error(error)
-      throw error
+  server.route({
+    url: '/:id',
+    method: ['GET', 'POST'],
+    handler: async (req: FastifyRequest, res: FastifyReply) => {
+      try {
+        const options = getOpts(<Options>req.body)
+        return await read(req, res, server, options)
+      } catch (error) {
+        server.log.error(error)
+        throw error
+      }
     }
   })
 
   server.put('/:id', {}, async (req: FastifyRequest, res: FastifyReply) => {
     try {
-      return await update(req, res, server, getOpts(<Options>req.body))
+      const options = getOpts(<Options>req.body)
+      return await update(req, res, server, options)
     } catch (error) {
       server.log.error(error)
       throw error
@@ -46,7 +57,8 @@ const app = (server: FastifyInstance) => {
 
   server.delete('/:id', {}, async (req: FastifyRequest, res: FastifyReply) => {
     try {
-      return await destroy(req, res, server, getOpts(<Options>req.body))
+      const options = getOpts(<Options>req.body)
+      return await destroy(req, res, server, options)
     } catch (error) {
       server.log.error(error)
       throw error

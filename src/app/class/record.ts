@@ -9,7 +9,7 @@ class Record {
     secret: string,
     target: string | undefined,
     passphrase: string | undefined,
-    salt: string | undefined,
+    salt: string,
     autodestruct: boolean = true
   ) {
     this.secret = secret
