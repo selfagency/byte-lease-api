@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
-import { Options, Params } from '../class'
+import { Options } from '../class'
+import { Params } from '../main.d'
 
 const update = async (
   req: FastifyRequest,
