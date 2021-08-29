@@ -217,4 +217,5 @@ $RECYCLE.BIN/
 
 .dccache
 .vercel
+thunder-tests/
 api/
