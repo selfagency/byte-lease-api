@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { MailerResponse } from '../class'
-import { crypto, isEmail, mailer } from '../lib'
+import { crypto, isEmail } from '../lib'
+import { mail } from '../services'
 import { sharedSecret } from '../templates'
 
 const targetHandler = async (
@@ -15,7 +16,7 @@ const targetHandler = async (
 
   if (isEmail(target)) {
     try {
-      mailSentSuccessfully = await mailer(target, "Someone's shared a secret with you", sharedSecret(id), server)
+      mailSentSuccessfully = await mail(target, "Someone's shared a secret with you", sharedSecret(id), server)
 
       if (!mailSentSuccessfully) {
         return errorOut(424, 'Could not send email')

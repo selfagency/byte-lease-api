@@ -1,6 +1,6 @@
 import is from '@sindresorhus/is'
 import { Options } from '../class'
-import tryParse from './try_parse'
+import { tryParse } from './'
 
 const validations = async (operation: string, options: any): Promise<Options> => {
   const id = is.string(options.id) && options.id.length ? options.id : false

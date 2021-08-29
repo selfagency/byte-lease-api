@@ -2,7 +2,7 @@ import { generate } from 'generate-passphrase'
 import saltHash from 'password-salt-and-hash'
 import StringCrypto from 'string-crypto'
 import Credentials from '../class/credentials'
-import logger from './logger'
+import { logger } from './'
 
 const { encryptString, decryptString } = new StringCrypto()
 

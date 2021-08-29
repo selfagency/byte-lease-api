@@ -3,8 +3,8 @@ import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } fro
 import ms from 'ms'
 import { uid } from 'uid/secure'
 import { Credentials, Options, Record } from '../class'
-import { set } from '../db'
 import { crypto, expiry, targetHandler, validations } from '../lib'
+import { set } from '../services/db'
 
 const create = async (
   req: FastifyRequest,
@@ -29,10 +29,12 @@ const create = async (
   ) => {
     try {
       // parse passphrase
-      let hashed: string | undefined, salt: string | undefined
+      let hashed: string | undefined, salt: string
       if (passphrase && !is.string(passphrase)) {
         hashed = passphrase.hashed
         salt = passphrase.salt
+      } else {
+        salt = passphrase as string
       }
 
       // create the record

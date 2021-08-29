@@ -1,6 +1,6 @@
 import is from '@sindresorhus/is'
 import ms from 'ms'
-import tryParse from './try_parse'
+import { tryParse } from './'
 
 const expiry = async (ttl: string | number | undefined): Promise<number> => {
   const oneDay = ms('1d') / 1000

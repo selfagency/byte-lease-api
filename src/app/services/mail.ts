@@ -1,9 +1,10 @@
+import { FastifyInstance } from 'fastify'
 import MailerResponse from '../class/mailer_response'
 
-const mailer = async (to: string, subject: string, text: string, server) => {
+const mail = async (to: string, subject: string, text: string, server: FastifyInstance) => {
   const { mailer, log } = server
 
-  return mailer.sendMail({ to, subject, text }, errors => {
+  return mailer.sendMail({ to, subject, text }, (errors: Error[]) => {
     if (errors) {
       errors.forEach(error => log.error(error))
       throw new Error('Could not send email')
@@ -13,4 +14,4 @@ const mailer = async (to: string, subject: string, text: string, server) => {
   })
 }
 
-export default mailer
+export default mail

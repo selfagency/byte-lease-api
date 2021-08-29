@@ -2,8 +2,8 @@ import is from '@sindresorhus/is'
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import isIp from 'is-ip'
 import { Options, Params, Query, ReadResponse, Record } from '../class'
-import { del, get, ttl } from '../db'
 import { crypto, validations } from '../lib'
+import { del, get, ttl } from '../services/db'
 
 const read = async (
   req: FastifyRequest,
@@ -98,9 +98,9 @@ const read = async (
 
   // is there an selfDestruct?
   if (selfDestruct) {
-    let response: string
+    let response: boolean
     try {
-      response = (await del(id)) as string
+      response = (await del(id)) as boolean
       selfDestructSuccess = true
       server.log.info(`(${req.id}) Secret ${id} selfDestructed: ${response}`)
     } catch (error) {
