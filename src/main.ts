@@ -1,4 +1,4 @@
-import Sentry from '@sentry/node'
+#!/bin/env node
 import { VercelRequest, VercelResponse } from '@vercel/node'
 import Fastify, { FastifyInstance } from 'fastify'
 import FastifyMailer from 'fastify-mailer'
@@ -15,7 +15,6 @@ if (process.env.SENTRY_DSN) {
   fastify.register(FastifySentry, {
     dsn: process.env.SENTRY_DSN,
     environment: process.env.ENVIRONMENT,
-    integrations: [new Sentry.Integrations.Http({ tracing: true })],
     tracesSampleRate: process.env.ENVIRONMENT === 'development' ? 1.0 : 0.0125
   })
 }
@@ -34,6 +33,15 @@ fastify.register(FastifyMailer, {
 })
 
 fastify.register(app)
+
+if (require.main === module) {
+  fastify.listen(3000, function (err, address) {
+    if (err) {
+      fastify.log.error(err)
+      process.exit(1)
+    }
+  })
+}
 
 export default async (req: VercelRequest, res: VercelResponse) => {
   await fastify.ready()

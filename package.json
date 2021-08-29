@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev:start": "doppler run -- vercel dev --debug",
-    "dev:local": "tsc; doppler run -- node serve.js | pino-pretty"
+    "dev:local": "tsc; doppler run -- node api/main.js | pino-pretty"
   },
   "keywords": [],
   "author": "Daniel Sieradski <daniel@self.agency>",
@@ -18,6 +18,7 @@
     "@types/ioredis": "^4.27.1",
     "@types/ms": "^0.7.31",
     "@types/node": "^16.7.2",
+    "@types/nodemailer": "^6.4.4",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
     "@vercel/node": "^1.12.1",
@@ -36,6 +37,7 @@
     "ioredis": "^4.27.8",
     "is-ip": "^3.1.0",
     "ms": "^2.1.3",
+    "nodemon": "^2.0.12",
     "password-salt-and-hash": "^1.0.5",
     "pino": "^7.0.0-rc.3",
     "pino-pretty": "^6.0.0",
@@ -44,8 +46,5 @@
     "typescript": "^4.4.2",
     "uid": "^2.0.0",
     "vercel": "^23.1.2"
-  },
-  "dependencies": {
-    "@types/nodemailer": "^6.4.4"
   }
 }

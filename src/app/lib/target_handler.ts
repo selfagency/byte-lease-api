@@ -16,7 +16,12 @@ const targetHandler = async (
 
   if (isEmail(target)) {
     try {
-      mailSentSuccessfully = await mail(target, "Someone's shared a secret with you", sharedSecret(id), server)
+      mailSentSuccessfully = (await mail(
+        target,
+        "Someone's shared a secret with you",
+        sharedSecret(id),
+        server
+      )) as MailerResponse
 
       if (!mailSentSuccessfully) {
         return errorOut(424, 'Could not send email')
