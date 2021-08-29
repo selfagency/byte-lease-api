@@ -149,6 +149,7 @@ const create = async (
           id,
           passphrase: credentials.passphrase,
           target: target,
+          autodestruct,
           expires: `${ms(expire * 1000)}`,
           result
         })

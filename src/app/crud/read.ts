@@ -28,6 +28,8 @@ const read = async (
   const id = (params.id || options.id) as string
   options.id = id
 
+  server.log.debug(JSON.stringify(options))
+
   // validate options
   try {
     options = await validations('read', options)
@@ -42,7 +44,12 @@ const read = async (
     // get the record
     const $record = (await get(id)) as string
     record = JSON.parse($record)
+    server.log.debug(JSON.stringify(record))
   } catch (error) {
+    return errorOut(424, `Could not retrieve secret ${id}`)
+  }
+
+  if (!record) {
     return errorOut(404, `Secret ${id} not found`)
   }
 
