@@ -1,7 +1,7 @@
 name: tests
 on: push
 jobs:
-  test:
+  run tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -9,3 +9,6 @@ jobs:
         run: npm i
       - name: Run tests
         run: npm run test
+      - uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
