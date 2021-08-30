@@ -1,9 +1,9 @@
 import is from '@sindresorhus/is'
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import isIp from 'is-ip'
+import { Params, Query } from '../../main.d'
 import { Options, ReadResponse, Record } from '../class'
 import { crypto, validations } from '../lib'
-import { Params, Query } from '../main.d'
 import { del, get, ttl } from '../services/db'
 
 const read = async (

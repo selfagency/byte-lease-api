@@ -1,0 +1,9 @@
+{
+  "ignore": ["node_modules", "thunder-tests"],
+  "watch": ["./src/**/*", "./api/**/*"],
+  "ext": "ts js json",
+  "execMap": {
+    "ts": "tsc",
+    "js": "npm run dev:local"
+  }
+}

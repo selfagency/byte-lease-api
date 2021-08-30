@@ -1,8 +1,8 @@
 import is from '@sindresorhus/is'
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
+import { Params } from '../../main.d'
 import { Options, Record } from '../class'
 import { crypto, validations } from '../lib'
-import { Params } from '../main.d'
 import { del, get } from '../services/db'
 
 const destroy = async (

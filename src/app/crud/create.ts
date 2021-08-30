@@ -140,9 +140,12 @@ const create = async (
     }
 
     // if there's a target, handle then enrypt the target
-    const encryptedTarget: string | undefined = target
-      ? await targetHandler(target, id, credentials.passphrase, server, errorOut)
-      : undefined
+    let encryptedTarget: string | undefined
+    try {
+      encryptedTarget = target ? await targetHandler(target, id, credentials.passphrase, server, errorOut) : undefined
+    } catch (error) {
+      return errorOut(424, `Could not encrypt target for secret ${id}`)
+    }
 
     return createRecord(id, credentials, target, encryptedSecret, encryptedTarget, selfDestruct, expire)
   }

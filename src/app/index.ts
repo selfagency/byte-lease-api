@@ -24,7 +24,7 @@ const app = (server: FastifyInstance) => {
       return await create(req, res, server, options)
     } catch (error) {
       server.log.error(error)
-      throw error
+      // throw error
     }
   })
 
@@ -37,7 +37,7 @@ const app = (server: FastifyInstance) => {
         return await read(req, res, server, options)
       } catch (error) {
         server.log.error(error)
-        throw error
+        // throw error
       }
     }
   })
@@ -48,7 +48,7 @@ const app = (server: FastifyInstance) => {
       return await update(req, res, server, options)
     } catch (error) {
       server.log.error(error)
-      throw error
+      // throw error
     }
   })
 
@@ -58,25 +58,25 @@ const app = (server: FastifyInstance) => {
       return await destroy(req, res, server, options)
     } catch (error) {
       server.log.error(error)
-      throw error
+      // throw error
     }
   })
 
   server.get('/favicon.ico', {}, async (req: FastifyRequest, res: FastifyReply) => {
     try {
-      await res.status(404).send('Not found')
+      return await res.status(404).send('Not found')
     } catch (error) {
       server.log.error(error)
-      throw error
+      // throw error
     }
   })
 
   server.get('/', {}, async (req: FastifyRequest, res: FastifyReply) => {
     try {
-      await res.send('OK')
+      return await res.send('OK')
     } catch (error) {
       server.log.error(error)
-      throw error
+      // throw error
     }
   })
 

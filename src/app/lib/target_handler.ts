@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+import { FastifyInstance, FastifyReply } from 'fastify'
 import { MailerResponse } from '../class'
 import { crypto, isEmail } from '../lib'
 import { mail } from '../services'
@@ -10,36 +10,28 @@ const targetHandler = async (
   passphrase: string,
   server: FastifyInstance,
   errorOut: Function
-): Promise<string | undefined> => {
-  let encryptedTarget: string | undefined
-  let mailSentSuccessfully: MailerResponse
-
-  if (isEmail(target)) {
-    try {
-      mailSentSuccessfully = (await mail(
+): Promise<string | FastifyReply> => {
+  try {
+    if (isEmail(target)) {
+      const mailerResponse = (await mail(
         target,
-        "Someone's shared a secret with you",
-        sharedSecret(id),
-        server
+        'Someone has shared a secret with you',
+        sharedSecret(id)
       )) as MailerResponse
 
-      if (!mailSentSuccessfully) {
-        return errorOut(424, 'Could not send email')
+      if (mailerResponse && mailerResponse.status === 'Error') {
+        return errorOut(424, mailerResponse.message)
+      } else if (mailerResponse && mailerResponse.status === 'OK') {
+        server.log.debug(JSON.stringify(mailerResponse))
       }
-    } catch (error) {
-      const message = (<Error>error).message as string
-      return errorOut(424, message)
     }
-  }
 
-  try {
-    encryptedTarget = (await crypto.encryptSecret(target, passphrase)) as string
+    const encryptedTarget = (await crypto.encryptSecret(target, passphrase)) as string
+    return encryptedTarget
   } catch (error) {
     const message = (<Error>error).message as string
     return errorOut(424, message)
   }
-
-  return encryptedTarget
 }
 
 export default targetHandler
