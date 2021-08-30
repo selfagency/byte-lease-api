@@ -4,7 +4,7 @@
 
 > Ephemeral secret storage
 
-### 🏠 [Homepage](https://byte.lease)
+🏠 [Homepage](https://byte.lease)
 
 ## Install
 
@@ -28,7 +28,7 @@ npm run test
 
 👤 **Daniel Sieradski <daniel@self.agency>**
 
-- Website: https://self.agency
+- Website: <https://self.agency>
 - Github: [@selfagency](https://github.com/selfagency)
 
 ## 🤝 Contributing

@@ -4,11 +4,19 @@ import get from './get'
 import set from './set'
 import ttl from './ttl'
 
-const db = new Redis(process.env.REDIS_URL, {
-  tls: {
-    rejectUnauthorized: false
-  }
-})
+const url = process.env.REDIS_URL || 'redis://127.0.0.1'
+const tls = process.env.REDIS_TLS || false
+
+const db = new Redis(
+  url,
+  tls
+    ? {
+        tls: {
+          rejectUnauthorized: false
+        }
+      }
+    : undefined
+)
 
 export default db
 

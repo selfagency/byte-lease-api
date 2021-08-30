@@ -1,4 +1,4 @@
 # TODO
 
-- [ ] Rate limiting
-- [ ] User accounts with API tokens
+- Rate limiting
+- User accounts with API tokens
