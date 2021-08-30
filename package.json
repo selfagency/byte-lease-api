@@ -6,7 +6,6 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc; nodemon",
-    "start": "doppler run -- node api/main",
     "dev:vercel": "doppler run -- vercel dev --debug",
     "dev:local": "doppler run -- node api/main.js | pino-pretty",
     "test": "jest"
