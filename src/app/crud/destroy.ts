@@ -24,7 +24,7 @@ const destroy = async (
 
   // validate options
   try {
-    options = await validations('destroy', options)
+    options = validations('destroy', options)
   } catch (error) {
     const message = (<Error>error).message as string
     const status = message.toLowerCase().includes('passphrase') ? 401 : 400
@@ -55,7 +55,7 @@ const destroy = async (
     // verify the passphrase
     try {
       if (is.string(passphrase)) {
-        verified = await crypto.verifyPassphrase(passphrase, hashed, salt)
+        verified = crypto.verifyPassphrase(passphrase, hashed, salt)
       } else {
         verified = false
       }

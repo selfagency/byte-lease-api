@@ -3,7 +3,8 @@ import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } fro
 import ms from 'ms'
 import { uid } from 'uid/secure'
 import { Credentials, Options, Record } from '../class'
-import { crypto, expiry, targetHandler, validations } from '../lib'
+import { targetHandler } from '../handlers'
+import { crypto, expiry, validations } from '../lib'
 import { set } from '../services/db'
 
 const create = async (
@@ -65,7 +66,7 @@ const create = async (
 
   // validations
   try {
-    options = await validations('create', options)
+    options = validations('create', options)
   } catch (error) {
     let message = (<Error>error).message as string
     const status = message.toLowerCase().includes('passphrase') ? 401 : 400
@@ -81,7 +82,7 @@ const create = async (
   // set expiration ttl
   let expire: number
   try {
-    expire = await expiry(options.expire)
+    expire = expiry(options.expire)
   } catch (error) {
     const message = (<Error>error).message as string
     return errorOut(500, message)
@@ -105,7 +106,7 @@ const create = async (
       // encrypt the secret
       let encryptedSecret: string
       try {
-        encryptedSecret = (await crypto.encryptSecret(secret, salt)) as string
+        encryptedSecret = crypto.encryptSecret(secret, salt) as string
       } catch (error) {
         const message = (<Error>error).message as string
         return errorOut(424, message)
@@ -125,7 +126,7 @@ const create = async (
 
     // generate a passphrase
     try {
-      credentials = (await crypto.generatePassphrase()) as Credentials
+      credentials = crypto.generatePassphrase() as Credentials
     } catch (error) {
       return errorOut(424, `Could not generate credentials for secret ${id}`)
     }
@@ -133,7 +134,7 @@ const create = async (
     // encrypt the secret
     let encryptedSecret: string
     try {
-      encryptedSecret = (await crypto.encryptSecret(secret, credentials.passphrase)) as string
+      encryptedSecret = crypto.encryptSecret(secret, credentials.passphrase) as string
     } catch (error) {
       const message = (<Error>error).message as string
       return errorOut(424, message)

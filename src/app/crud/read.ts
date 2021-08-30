@@ -27,7 +27,7 @@ const read = async (
 
   // validate options
   try {
-    options = await validations('read', options)
+    options = validations('read', options)
   } catch (error) {
     const message = (<Error>error).message as string
     const status = message.toLowerCase().includes('passphrase') ? 401 : 400

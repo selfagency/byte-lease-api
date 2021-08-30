@@ -7,7 +7,8 @@
     "build": "tsc",
     "watch": "tsc; nodemon",
     "dev:vercel": "doppler run -- vercel dev --debug",
-    "dev:local": "doppler run -- node api/main.js | pino-pretty"
+    "dev:local": "doppler run -- node api/main.js | pino-pretty",
+    "test": "doppler run -- jest"
   },
   "keywords": [],
   "author": "Daniel Sieradski <daniel@self.agency>",
@@ -44,6 +45,7 @@
     "is-ip": "^3.1.0",
     "jest": "^27.1.0",
     "ms": "^2.1.3",
+    "nodejs-base64": "^2.0.0",
     "nodemailer": "^6.6.3",
     "nodemon": "^2.0.12",
     "password-salt-and-hash": "^1.0.5",

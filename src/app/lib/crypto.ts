@@ -6,7 +6,7 @@ import { logger } from './'
 
 const { encryptString, decryptString } = new StringCrypto()
 
-const generatePassphrase = async (): Promise<Credentials | Error> => {
+const generatePassphrase = (): Credentials | Error => {
   try {
     const passphrase = generate({ numbers: false })
     const encrypted = saltHash.generateSaltHash(passphrase)
@@ -18,7 +18,7 @@ const generatePassphrase = async (): Promise<Credentials | Error> => {
   }
 }
 
-const verifyPassphrase = async (passphrase: string, hashed: string, salt: string): Promise<boolean | Error> => {
+const verifyPassphrase = (passphrase: string, hashed: string, salt: string): boolean | Error => {
   try {
     return saltHash.verifySaltHash(salt, hashed, passphrase)
   } catch (error) {
@@ -27,7 +27,7 @@ const verifyPassphrase = async (passphrase: string, hashed: string, salt: string
   }
 }
 
-const encryptSecret = async (secret: string, passphrase: string): Promise<string | Error> => {
+const encryptSecret = (secret: string, passphrase: string): string | Error => {
   try {
     const encrypted = encryptString(secret, passphrase)
     return encrypted
@@ -37,7 +37,7 @@ const encryptSecret = async (secret: string, passphrase: string): Promise<string
   }
 }
 
-const decryptSecret = async (secret: string, passphrase: string): Promise<string | Error> => {
+const decryptSecret = (secret: string, passphrase: string): string | Error => {
   try {
     const decrypted = decryptString(secret, passphrase)
     return decrypted

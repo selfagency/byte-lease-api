@@ -1,22 +1,17 @@
 import is from '@sindresorhus/is'
 import ms from 'ms'
-import { tryParse } from './'
 
-const expiry = async (ttl: string | number | undefined): Promise<number> => {
+const expiry = (ttl: string | number | undefined): number => {
   const oneDay = ms('1d') / 1000
   const twoDays = ms('2d') / 1000
-  let expires: string | number
+  let expires: string | number = oneDay
 
-  if (is.string(ttl) && ttl.length) {
-    if (tryParse(ttl)) {
-      expires = parseInt(ttl)
-    } else {
-      expires = ms(ttl) / 1000
-    }
-  } else if (is.number(ttl)) {
+  if (is.string(ttl)) {
+    expires = /\w/.test(ttl) ? ms(ttl) / 1000 : parseInt(ttl)
+  }
+
+  if (is.number(ttl)) {
     expires = ttl
-  } else {
-    expires = oneDay
   }
 
   if (expires > twoDays) {

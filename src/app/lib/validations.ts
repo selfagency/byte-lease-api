@@ -1,8 +1,8 @@
 import is from '@sindresorhus/is'
 import { Options } from '../class'
-import { tryParse } from './'
+import { expiry } from './'
 
-const validations = async (operation: string, options: any): Promise<Options> => {
+const validations = (operation: string, options: any): Options => {
   const id = is.string(options.id) && options.id.length ? options.id : false
   const secret = is.string(options.secret) && options.secret.length ? options.secret : false
   const passphrase = is.boolean(options.passphrase)
@@ -12,12 +12,7 @@ const validations = async (operation: string, options: any): Promise<Options> =>
     : false
   const target = is.string(options.target) && options.target.length ? options.target : false
   const selfDestruct = is.boolean(options.selfDestruct) ? Boolean(options.selfDestruct) : false
-  const expire =
-    (is.string(options.expire) && options.expire.length) || is.number(options.expire)
-      ? tryParse(options.expire)
-        ? parseInt(options.expire)
-        : options.expire
-      : false
+  const expire = expiry(options.expire)
 
   switch (operation) {
     case 'create':
