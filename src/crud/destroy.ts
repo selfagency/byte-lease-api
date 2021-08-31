@@ -1,6 +1,6 @@
 import is from '@sindresorhus/is'
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
-import { Params } from '../../main.d'
+import { Params } from '../../api/main.d'
 import { Options, Record } from '../class'
 import { crypto, validations } from '../lib'
 import { del, get } from '../services/db'

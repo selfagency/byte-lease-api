@@ -1,7 +1,7 @@
 import is from '@sindresorhus/is'
 import { FastifyInstance, FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify'
 import isIp from 'is-ip'
-import { Params, Query } from '../../main.d'
+import { Params, Query } from '../../api/main.d'
 import { Options, ReadResponse, Record } from '../class'
 import { crypto, validations } from '../lib'
 import { del, get, ttl } from '../services/db'
