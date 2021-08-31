@@ -2,7 +2,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
 import Fastify, { FastifyInstance } from 'fastify'
 import FastifySentry from 'fastify-sentry'
-import app from './app'
+import app from '../src'
 
 const fastify: FastifyInstance = Fastify({
   logger: {

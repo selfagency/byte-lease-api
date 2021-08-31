@@ -2,9 +2,8 @@
   "name": "byte-lease",
   "version": "0.1.0",
   "description": "",
-  "main": "dist/api/index.js",
+  "main": "api/main.ts",
   "scripts": {
-    "build": "tsc",
     "watch": "tsc; nodemon",
     "dev:vercel": "doppler run -- vercel dev --debug",
     "dev:local": "doppler run -- node api/main.js | pino-pretty",
