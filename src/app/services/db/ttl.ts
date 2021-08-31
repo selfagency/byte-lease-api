@@ -1,5 +1,5 @@
 import ms from 'ms'
-import { logger } from '../../lib'
+import { logger } from '../../services'
 import db from './'
 
 const ttl = async (id: string): Promise<string | Error> => {

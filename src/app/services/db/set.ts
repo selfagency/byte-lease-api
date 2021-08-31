@@ -1,5 +1,5 @@
 import { Record } from '../../class'
-import { logger } from '../../lib'
+import { logger } from '../../services'
 import db from './'
 
 const set = async (id: string, record: Record, expire: number): Promise<string | Error> => {

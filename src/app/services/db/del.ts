@@ -1,4 +1,4 @@
-import { logger } from '../../lib'
+import { logger } from '../../services'
 import db from './'
 
 const del = async (id: string): Promise<boolean | Error> => {

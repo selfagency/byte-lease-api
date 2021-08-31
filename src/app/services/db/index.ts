@@ -18,6 +18,10 @@ const db = new Redis(
     : undefined
 )
 
+process.on('SIGTERM', () => {
+  db.disconnect()
+})
+
 export default db
 
 export { del, get, set, ttl }

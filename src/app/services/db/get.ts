@@ -1,4 +1,4 @@
-import { logger } from '../../lib'
+import { logger } from '../../services'
 import db from './'
 
 const get = async (id: string): Promise<string | Error> => {

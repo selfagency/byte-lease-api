@@ -1,6 +1,7 @@
-import nodemailer, { TransportOptions } from 'nodemailer'
+import nodemailer, { Transporter, TransportOptions } from 'nodemailer'
 import MailerResponse from '../class/mailer_response'
-import { logger } from '../lib'
+import { isEmail } from '../lib'
+import { logger } from '../services'
 
 const defaultOptions: TransportOptions = <TransportOptions>{
   host: process.env.SMTP_HOST,
@@ -9,7 +10,10 @@ const defaultOptions: TransportOptions = <TransportOptions>{
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASSWORD
-  }
+  },
+  socketTimeout: 2000,
+  connectionTimeout: 2000,
+  logger
 }
 
 const mail = async (
@@ -17,39 +21,27 @@ const mail = async (
   subject: string,
   message: string,
   options: TransportOptions = defaultOptions
-): Promise<MailerResponse | Error> => {
+): Promise<MailerResponse> => {
+  const mailer: Transporter = nodemailer.createTransport(options, {
+    from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`
+  })
+
   try {
-    const mailer = nodemailer.createTransport(options, {
-      from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`
+    if (!(isEmail(to) && subject.length && message.length))
+      throw new Error('Email requires `to`, `subject` and `message`')
+
+    let info = await mailer.sendMail({
+      to,
+      subject,
+      text: message
     })
 
-    let response: string | null = null
-
-    if (to && subject && message) {
-      mailer.sendMail(
-        {
-          to,
-          subject,
-          text: message
-        },
-        (errors: any, info: any) => {
-          if (errors) logger.error(`nodemailer error: ${JSON.stringify(errors)}`)
-          if (info) logger.debug(`nodemailer operation: ${JSON.stringify(info)}`)
-          if (info && info.response) response = info.response
-        }
-      )
-
-      while (!response) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-
-      return new MailerResponse('OK', 'Mail sent successfully', response)
-    } else {
-      throw new Error('Email requires `to`, `subject` and `message`')
-    }
+    mailer.close()
+    return new MailerResponse('OK', 'Mail sent successfully', info.response)
   } catch (error) {
-    logger.error(<Error>error)
-    throw new MailerResponse('Error', 'Could not send email', (<Error>error).message)
+    mailer.close()
+    logger.error((<Error>error).message)
+    return new MailerResponse('Failure', 'Mail was not sent', (<Error>error).message)
   }
 }
 
