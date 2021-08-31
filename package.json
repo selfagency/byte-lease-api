@@ -8,7 +8,7 @@
     "watch": "tsc; nodemon",
     "dev:vercel": "doppler run -- vercel dev --debug",
     "dev:local": "doppler run -- node api/main.js | pino-pretty",
-    "test": "jest"
+    "test": "jest --forceExit"
   },
   "keywords": [],
   "author": "Daniel Sieradski <daniel@self.agency>",
